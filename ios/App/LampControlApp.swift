@@ -6,6 +6,7 @@ struct LampControlApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .tint(.orange)
         }
     }
 }
@@ -24,6 +25,18 @@ struct LampShortcuts: AppShortcutsProvider {
             phrases: ["Turn off \(.applicationName)", "\(.applicationName) off"],
             shortTitle: "Lamp Off",
             systemImageName: "lightbulb.slash"
+        )
+        AppShortcut(
+            intent: SetLampColorIntent(),
+            phrases: ["Set \(.applicationName) to \(\.$preset)", "Make \(.applicationName) \(\.$preset)"],
+            shortTitle: "Lamp Color",
+            systemImageName: "paintpalette.fill"
+        )
+        AppShortcut(
+            intent: SetLampBrightnessIntent(),
+            phrases: ["Set \(.applicationName) brightness", "Dim \(.applicationName)"],
+            shortTitle: "Lamp Brightness",
+            systemImageName: "sun.max.fill"
         )
     }
 }

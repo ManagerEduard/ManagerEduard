@@ -34,6 +34,8 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.managereduard.lampcontrol
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        MARKETING_VERSION: "1.1"
     scheme: {}
   LampWidget:
     type: app-extension

@@ -1,10 +1,11 @@
 # Lamp — iPhone widget for a Triones Bluetooth bulb
 
-A tiny iOS app that switches a **Triones** ("Happy Lighting") Bluetooth bulb on and off, with:
+A tiny iOS app that controls a **Triones** ("Happy Lighting") Bluetooth bulb, with:
 
-- a Home Screen widget (On / Off buttons)
+- a Home app–style control screen: brightness slider, power button, color swatches and a custom color picker
+- Home Screen widgets in three sizes (On/Off, colors, brightness presets)
 - "Lamp On" / "Lamp Off" controls for Control Center, the Lock Screen and the Action button
-- Siri & Shortcuts actions ("Hey Siri, turn on Lamp")
+- Siri & Shortcuts actions ("Hey Siri, turn on Lamp", "Set Lamp to blue")
 
 Requires iOS 18+. The phone has to be within Bluetooth range of the bulb.
 
@@ -41,10 +42,15 @@ nothing is lost.
 
 Triones bulbs expose BLE service `FFD5` with write characteristic `FFD9`:
 
-| Command | Bytes        |
-|---------|--------------|
-| On      | `CC 23 33`   |
-| Off     | `CC 24 33`   |
+| Command          | Bytes                  |
+|------------------|------------------------|
+| On               | `CC 23 33`             |
+| Off              | `CC 24 33`             |
+| RGB color        | `56 RR GG BB 00 F0 AA` |
+| Warm white level | `56 00 00 00 WW 0F AA` |
+
+The bulb has no separate brightness command, so brightness is applied by scaling the
+RGB (or warm-white) values. The last state sent is remembered in `LampState`.
 
 The widget buttons run App Intents that conform to `LiveActivityIntent`, so iOS executes
 them in the app's own process (launched in the background, with the `bluetooth-central`
@@ -54,7 +60,9 @@ a few seconds later so Happy Lighting can still connect.
 Code layout:
 
 - `ios/Shared/BulbController.swift`: Bluetooth logic
-- `ios/Shared/LampIntents.swift`: On/Off intents used by the widget, controls and Siri
+- `ios/Shared/LampState.swift`: colors, presets and the remembered lamp state
+- `ios/Shared/LampIntents.swift`: On/Off/color/brightness intents used by the widget, controls and Siri
 - `ios/App/`: setup screen (pick your bulb, test buttons)
 - `ios/Widget/`: widget + Control Center controls
 - `ios/project.yml`: XcodeGen project spec
+- `scripts/make_icon.py`: draws the app icon

@@ -2,14 +2,24 @@ import CoreBluetooth
 import Foundation
 
 /// Commands understood by Triones / "Happy Lighting" BLE bulbs.
-enum LampCommand {
+enum LampCommand: Equatable {
     case on
     case off
+    /// RGB colour. Brightness is baked into the channel values.
+    case color(red: UInt8, green: UInt8, blue: UInt8)
+    /// The bulb's dedicated warm-white LEDs at the given level.
+    case warmWhite(level: UInt8)
 
     var payload: Data {
         switch self {
-        case .on:  return Data([0xCC, 0x23, 0x33])
-        case .off: return Data([0xCC, 0x24, 0x33])
+        case .on:
+            return Data([0xCC, 0x23, 0x33])
+        case .off:
+            return Data([0xCC, 0x24, 0x33])
+        case let .color(red, green, blue):
+            return Data([0x56, red, green, blue, 0x00, 0xF0, 0xAA])
+        case let .warmWhite(level):
+            return Data([0x56, 0x00, 0x00, 0x00, level, 0x0F, 0xAA])
         }
     }
 }
@@ -203,7 +213,7 @@ final class BulbController: NSObject {
         if characteristic.properties.contains(.writeWithoutResponse) {
             peripheral.writeValue(job.payload, for: characteristic, type: .withoutResponse)
             // No acknowledgement is coming; give the radio a moment to flush.
-            queue.asyncAfter(deadline: .now() + 0.15) { [weak self] in
+            queue.asyncAfter(deadline: .now() + 0.06) { [weak self] in
                 self?.finishJob(.success(()), jobID: job.id)
             }
         } else {
