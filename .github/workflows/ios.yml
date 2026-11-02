@@ -1,0 +1,61 @@
+name: Build iOS app
+
+on:
+  push:
+    paths:
+      - "ios/**"
+      - ".github/workflows/ios.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate Xcode project
+        working-directory: ios
+        run: xcodegen generate
+
+      - name: Build (unsigned)
+        working-directory: ios
+        run: |
+          xcodebuild \
+            -project LampControl.xcodeproj \
+            -scheme LampControl \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" \
+            build
+
+      - name: Package IPA
+        run: |
+          mkdir -p Payload
+          cp -R ios/build/Build/Products/Release-iphoneos/LampControl.app Payload/
+          ls Payload/LampControl.app/PlugIns
+          zip -qry LampControl.ipa Payload
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: LampControl-ipa
+          path: LampControl.ipa
+
+      - name: Publish release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: lamp-build-${{ github.run_number }}
+          name: Lamp app build ${{ github.run_number }}
+          target_commitish: ${{ github.sha }}
+          make_latest: true
+          body: |
+            Unsigned build of the Lamp app from `${{ github.ref_name }}` (${{ github.sha }}).
+            Open this page on your iPhone, tap **LampControl.ipa**, then "Share › SideStore" to install.
+          files: LampControl.ipa

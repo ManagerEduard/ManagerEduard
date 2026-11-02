@@ -1,0 +1,53 @@
+# XcodeGen spec. The CI workflow turns this into LampControl.xcodeproj.
+name: LampControl
+options:
+  bundleIdPrefix: com.managereduard
+  deploymentTarget:
+    iOS: "18.0"
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    MARKETING_VERSION: "1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    TARGETED_DEVICE_FAMILY: "1"
+    # Built unsigned; SideStore re-signs with your free Apple ID.
+    CODE_SIGNING_ALLOWED: "NO"
+    CODE_SIGNING_REQUIRED: "NO"
+    CODE_SIGN_IDENTITY: ""
+targets:
+  LampControl:
+    type: application
+    platform: iOS
+    sources:
+      - path: App
+      - path: Shared
+    dependencies:
+      - target: LampWidget
+    info:
+      path: App/Info.plist
+      properties:
+        CFBundleDisplayName: Lamp
+        UILaunchScreen: {}
+        UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
+        NSBluetoothAlwaysUsageDescription: Lamp uses Bluetooth to switch your Triones bulb on and off.
+        UIBackgroundModes: [bluetooth-central]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.managereduard.lampcontrol
+    scheme: {}
+  LampWidget:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: Widget
+      - path: Shared
+    info:
+      path: Widget/Info.plist
+      properties:
+        CFBundleDisplayName: Lamp
+        NSBluetoothAlwaysUsageDescription: Lamp uses Bluetooth to switch your Triones bulb on and off.
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.managereduard.lampcontrol.widget
